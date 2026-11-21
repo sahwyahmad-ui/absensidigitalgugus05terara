@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <!-- Meta Khusus iOS Safari PWA (Layar Penuh & Status Bar) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ABSENSI DIGITAL" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <link id="app-manifest-link" rel="manifest" />
+  <link id="app-icon-link" rel="icon" type="image/png" href="ICON_KKG_GUGUS_05_TERARA_512x512.png" />
+  <!-- Ikon Utama yang Muncul di Layar Depan (Home Screen) iPhone & iPad (Wajib File PNG Asli, Bukan Data URL) -->
+  <link rel="apple-touch-icon" href="ICON_KKG_GUGUS_05_TERARA_512x512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="ICON_KKG_GUGUS_05_TERARA_512x512.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="ICON_KKG_GUGUS_05_TERARA_512x512.png" />
+
+  <title>ABSENSI DIGITAL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 50%, #f0fdf4 100%);
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      overscroll-behavior-y: none;
+    }
+    body {
+      padding-top: max(12px, var(--sat));
+      padding-bottom: max(12px, var(--sab));
+      padding-left: var(--sal);
+      padding-right: var(--sar);
+    }
+    /* Mencegah auto-zoom Safari iOS saat input difokuskan (wajib >= 16px) */
+    input, select, textarea {
+      font-size: 16px !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      background-size: 1rem;
+      padding-right: 2.5rem !important;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fadeUp 0.25s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-[100dvh] text-slate-800 antialiased flex flex-col justify-between">
+
+  <!-- Toast Notifikasi (Aman dari Notch / Dynamic Island iPhone) -->
+  <div id="toast-box" style="top: max(16px, calc(var(--sat) + 8px));" class="fixed left-4 right-4 z-50 flex flex-col items-center pointer-events-none space-y-2"></div>
+
+  <!-- Modal Panduan Instalasi Khusus iOS Safari -->
+  <div id="ios-install-modal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 animate-fade-up">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm">
+            <i class="fa-brands fa-apple"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-slate-800">Pasang di iPhone / iPad</h3>
+            <p class="text-[11px] text-slate-500">Gratis tanpa App Store</p>
+          </div>
+        </div>
+        <button onclick="window.closeIosInstallModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+        <div class="flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+          <p>Pastikan halaman ini dibuka menggunakan aplikasi <strong>Safari</strong> di iPhone/iPad (bukan browser bawaan WhatsApp atau Chrome).</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+          <p>Ketuk ikon <strong>Bagikan (Share)</strong> <span class="inline-flex items-center justify-center px-1.5 py-0.5 bg-white border border-slate-200 rounded text-blue-600 font-bold"><i class="fa-solid fa-arrow-up-from-bracket text-[10px]"></i></span> di bagian bawah layar Safari.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+          <p>Geser ke bawah dan pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>, lalu ketuk <strong>Tambah</strong>.</p>
+        </div>
+      </div>
+
+      <button onclick="window.closeIosInstallModal()" class="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition">
+        Saya Mengerti
+      </button>
+    </div>
+  </div>
+
+  <!-- Kontainer Utama -->
+  <main id="app-root" class="flex-1 w-full max-w-md mx-auto p-4 flex flex-col justify-center"></main>
+
+  <!-- Footer -->
+  <footer class="text-center py-3 text-[11px] text-slate-400 font-medium">
+    Sistem Presensi Digital Guru &amp; Pegawai • Android &amp; iOS Ready
+  </footer>
+
+  <script>
+    // =========================================================================
+    // KONEKSI KE DATABASE GOOGLE SHEETS PUSAT (SAMA DENGAN APLIKASI ADMIN)
+    // =========================================================================
+    const SERVER_URL = "https://script.google.com/macros/s/AKfycbx1OnWxWVraewrI42glys2JEm96W8ueEa5T20CZrOlNpQsDVi3MIcDtrHOpHqUmgBqt/exec";
+    const STORAGE_KEY = "presensi_guru_mobile_v1";
+    const MAX_CACHED_RECORDS = 30;
+
+    let appState = {
+      selectedSchool: "",
+      schoolsList: [],
+      schoolConfig: {
+        district: "KECAMATAN TERARA",
+        cluster: "GUGUS 05 TERARA",
+        schoolName: "",
+        entryTimeLimit: "07:15:00",
+        exitTimeLimitEmployee: "14:00:00",
+        exitTimeLimitFriday: "11:30:00",
+        activeDays: [1, 2, 3, 4, 5, 6],
+        customHolidays: [],
+        useGpsLocation: false,
+        schoolLat: "",
+        schoolLng: "",
+        schoolRadius: 100
+      },
+      employees: [],
+      currentUser: null,
+      myRecords: []
+    };
+
+    let isLoading = false;
+    let isSubmitting = false;
+    let lastExitAllowedState = null;
+    let deferredInstallPrompt = null;
+    let currentGpsStatusText = "";
+
+    // Deteksi Perangkat iOS (iPhone / iPad / iPod)
+    function isIosDevice() {
+      const ua = window.navigator.userAgent || "";
+      const isIpadOS = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      return /iPhone|iPad|iPod/i.test(ua) || isIpadOS;
+    }
+
+    // Deteksi apakah dibuka di dalam browser WhatsApp / Chrome iOS (bukan Safari murni)
+    function isIosNonSafariBrowser() {
+      if (!isIosDevice() || isStandaloneMode()) return false;
+      const ua = window.navigator.userAgent || "";
+      const isOtherBrowser = /CriOS|FxiOS|EdgiOS|OPiOS|WhatsApp|FBAN|FBAV|Instagram|Line/i.test(ua);
+      const hasSafari = /Safari/i.test(ua);
+      return isOtherBrowser || !hasSafari;
+    }
+
+    // Deteksi apakah aplikasi sudah dibuka dari Home Screen (Standalone)
+    function isStandaloneMode() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    window.copyCurrentAppLink = async function() {
+      const url = window.location.href;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url);
+          showToast("Link berhasil disalin! Silakan buka aplikasi Safari lalu Tempel (Paste).", "success");
+          return;
+        }
+      } catch (e) {}
+      const temp = document.createElement("input");
+      temp.value = url;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      showToast("Link berhasil disalin! Buka Safari lalu Tempel (Paste).", "success");
+    };
+
+    // Generate Ikon PNG Resolusi Tinggi via Canvas (Wajib untuk iOS Apple Touch Icon)
+    function generatePngAppIcon(size = 180) {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        const grad = ctx.createLinearGradient(0, 0, size, size);
+        grad.addColorStop(0, "#2563eb");
+        grad.addColorStop(1, "#4338ca");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(size * 0.5, size * 0.37, size * 0.145, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = size * 0.085;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(size * 0.5, size * 0.8, size * 0.25, Math.PI * 1.12, Math.PI * 1.88);
+        ctx.stroke();
+
+        ctx.fillStyle = "#10b981";
+        ctx.beginPath();
+        ctx.arc(size * 0.75, size * 0.74, size * 0.125, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = size * 0.03;
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(size * 0.695, size * 0.74);
+        ctx.lineTo(size * 0.735, size * 0.78);
+        ctx.lineTo(size * 0.805, size * 0.70);
+        ctx.stroke();
+
+        return canvas.toDataURL("image/png");
+      } catch (e) {
+        return "";
+      }
+    }
+
+    // Inisialisasi Ikon PNG & Manifest PWA untuk Instalasi Mandiri (iOS & Android)
+    function setupStandaloneAppMeta() {
+      try {
+        const officialLogoUrl = new URL("ICON_KKG_GUGUS_05_TERARA_512x512.png", window.location.href).href;
+
+        const manifestObj = {
+          name: "ABSENSI DIGITAL",
+          short_name: "ABSENSI DIGITAL",
+          start_url: ".",
+          display: "standalone",
+          background_color: "#ffffff",
+          theme_color: "#1e3a8a",
+          icons: [
+            { src: officialLogoUrl, sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: officialLogoUrl, sizes: "180x180", type: "image/png", purpose: "any" }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+        const manifestLink = document.getElementById("app-manifest-link");
+        if (manifestLink) manifestLink.href = URL.createObjectURL(manifestBlob);
+      } catch (e) {}
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        renderApp();
+      });
+    }
+
+    window.installAppToDevice = async function() {
+      if (isIosDevice()) {
+        const modal = document.getElementById("ios-install-modal");
+        if (modal) {
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+        }
+        return;
+      }
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === "accepted") {
+          showToast("Aplikasi berhasil dipasang di layar utama HP!", "success");
+        }
+        deferredInstallPrompt = null;
+        renderApp();
+      } else {
+        showToast("Ketuk menu browser (⋮) lalu pilih 'Tambahkan ke Layar Utama / Install App'.", "info");
+      }
+    };
+
+    window.closeIosInstallModal = function() {
+      const modal = document.getElementById("ios-install-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    };
+
+    window.downloadReadyApkZip = async function() {
+      if (typeof JSZip === "undefined") {
+        showToast("Library pembuat ZIP belum termuat. Periksa koneksi internet.", "error");
+        return;
+      }
+      try {
+        showToast("Menyiapkan paket index.zip...", "info");
+        const zip = new JSZip();
+        const cleanHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        zip.file("index.html", cleanHtml);
+        const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "index.zip";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+        showToast("File index.zip berhasil diunduh!", "success");
+      } catch (e) {
+        showToast("Gagal membuat file ZIP otomatis.", "error");
+      }
+    };
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState = { ...appState, ...parsed };
+          if (Array.isArray(appState.myRecords) && appState.myRecords.length > MAX_CACHED_RECORDS) {
+            appState.myRecords = appState.myRecords.slice(0, MAX_CACHED_RECORDS);
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const schParam = params.get("sekolah") || params.get("school");
+        if (schParam && schParam.trim()) {
+          appState.selectedSchool = schParam.trim();
+        }
+      } catch (e) {}
+    }
+
+    function saveState() {
+      try {
+        if (Array.isArray(appState.myRecords) && appState.myRecords.length > MAX_CACHED_RECORDS) {
+          appState.myRecords = appState.myRecords.slice(0, MAX_CACHED_RECORDS);
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+    }
+
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function showToast(msg, type = "success") {
+      const box = document.getElementById("toast-box");
+      if (!box) return;
+      while (box.children.length >= 2) {
+        box.firstChild.remove();
+      }
+      const el = document.createElement("div");
+      const styles = type === "success"
+        ? "bg-emerald-600 text-white border-emerald-500"
+        : type === "error"
+        ? "bg-rose-600 text-white border-rose-500"
+        : "bg-slate-800 text-white border-slate-700";
+      const icon = type === "success" ? "fa-circle-check" : type === "error" ? "fa-circle-xmark" : "fa-circle-info";
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2.5 max-w-sm w-full animate-fade-up ${styles}`;
+      el.innerHTML = `<i class="fa-solid ${icon} text-base shrink-0"></i><span class="flex-1 leading-snug">${escapeHTML(msg)}</span>`;
+      box.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.25s";
+        setTimeout(() => el.remove(), 250);
+      }, 3600);
+    }
+
+    function getTodayDateStr(dateObj = new Date()) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getNowTimeStr(dateObj = new Date()) {
+      const hh = String(dateObj.getHours()).padStart(2, "0");
+      const mm = String(dateObj.getMinutes()).padStart(2, "0");
+      const ss = String(dateObj.getSeconds()).padStart(2, "0");
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function formatDateIndo(dateStr) {
+      if (!dateStr || !dateStr.includes("-")) return dateStr || "-";
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(y, m - 1, d, 12, 0, 0);
+      return dt.toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function canCheckOutNow(dateObj = new Date()) {
+      const nowTime = getNowTimeStr(dateObj);
+      const dayOfWeek = dateObj.getDay();
+      const exitLimit = dayOfWeek === 5
+        ? (appState.schoolConfig.exitTimeLimitFriday || "11:30:00")
+        : (appState.schoolConfig.exitTimeLimitEmployee || "14:00:00");
+      return {
+        allowed: nowTime >= exitLimit,
+        exitLimit: exitLimit
+      };
+    }
+
+    function getDailyLockState(todayRec) {
+      const statusText = todayRec ? String(todayRec.status || "").trim() : "";
+      const isLeaveStatus = ["Dinas Luar", "Izin", "Sakit", "Alpa"].includes(statusText);
+      const hasCheckedIn = Boolean(todayRec && todayRec.check_in && todayRec.check_in !== "-");
+      const hasCheckedOut = Boolean(todayRec && todayRec.check_out && todayRec.check_out !== "-");
+      const hasAnyRecordToday = Boolean(todayRec && (hasCheckedIn || hasCheckedOut || isLeaveStatus || statusText !== ""));
+
+      return {
+        isLeaveStatus,
+        hasCheckedIn,
+        hasCheckedOut,
+        hasAnyRecordToday,
+        lockIn: hasCheckedIn || isLeaveStatus,
+        lockOut: hasCheckedOut || isLeaveStatus || !hasCheckedIn,
+        lockLeave: hasAnyRecordToday
+      };
+    }
+
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timer);
+        return response;
+      } catch (err) {
+        clearTimeout(timer);
+        throw err;
+      }
+    }
+
+    function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const R = 6371000;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    }
+
+    function verifySchoolLocationIfRequired() {
+      return new Promise((resolve) => {
+        const cfg = appState.schoolConfig || {};
+        if (!cfg.useGpsLocation) {
+          resolve({ ok: true, coordsText: "" });
+          return;
+        }
+        const targetLat = parseFloat(String(cfg.schoolLat || "").replace(",", "."));
+        const targetLng = parseFloat(String(cfg.schoolLng || "").replace(",", "."));
+        const maxRadius = Math.max(10, Number(cfg.schoolRadius) || 100);
+
+        if (isNaN(targetLat) || isNaN(targetLng)) {
+          resolve({
+            ok: false,
+            message: "Admin mengaktifkan wajib lokasi, namun titik koordinat sekolah belum diatur."
+          });
+          return;
+        }
+
+        if (!navigator.geolocation) {
+          resolve({
+            ok: false,
+            message: "Perangkat HP Anda tidak mendukung GPS / Lokasi."
+          });
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            const distance = calculateDistanceMeters(userLat, userLng, targetLat, targetLng);
+            const coordsStr = `${userLat.toFixed(6)},${userLng.toFixed(6)} (${distance}m)`;
+            if (distance <= maxRadius) {
+              resolve({ ok: true, coordsText: coordsStr, distance });
+            } else {
+              resolve({
+                ok: false,
+                message: `Anda berada di luar area sekolah (${distance} meter dari sekolah, batas maksimal ${maxRadius} meter).`
+              });
+            }
+          },
+          (err) => {
+            const iosHint = isIosDevice()
+              ? " Buka Pengaturan iPhone > Privasi & Keamanan > Layanan Lokasi > pastikan Safari diizinkan."
+              : " Pastikan GPS/Lokasi HP aktif dan izin lokasi diizinkan.";
+            resolve({
+              ok: false,
+              message: "Gagal membaca GPS HP!" + iosHint
+            });
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+      });
+    }
+
+    // =========================================================================
+    // SINKRONISASI DATA DENGAN GOOGLE SHEETS PUSAT
+    // =========================================================================
+    async function fetchSchoolsList() {
+      try {
+        const res = await fetchWithTimeout(`${SERVER_URL}?action=get_schools&_t=${Date.now()}`, {}, 10000);
+        const json = await res.json();
+        if (json && json.status === "success" && Array.isArray(json.schools)) {
+          appState.schoolsList = json.schools;
+          if (!appState.selectedSchool && json.schools.length > 0) {
+            appState.selectedSchool = json.schools[0];
+          }
+          saveState();
+        }
+      } catch (e) {
+        console.warn("Gagal mengambil daftar sekolah:", e);
+      }
+    }
+
+    async function fetchSchoolDataAndEmployees(schoolName, silent = true) {
+      if (!schoolName) return;
+      const prevFingerprint = JSON.stringify({ c: appState.schoolConfig, e: appState.employees, u: appState.currentUser });
+      isLoading = true;
+      if (!silent) updateStatusIndicator();
+      try {
+        const res = await fetchWithTimeout(`${SERVER_URL}?action=get_school_data&school=${encodeURIComponent(schoolName)}&_t=${Date.now()}`, {}, 12000);
+        const json = await res.json();
+        if (json && json.status === "success") {
+          if (json.schoolConfig && Object.keys(json.schoolConfig).length > 0) {
+            appState.schoolConfig = { ...appState.schoolConfig, ...json.schoolConfig, schoolName };
+          } else {
+            appState.schoolConfig.schoolName = schoolName;
+          }
+          if (Array.isArray(json.employees)) {
+            appState.employees = json.employees.filter(e => e.is_active !== false);
+          }
+          if (appState.currentUser) {
+            const latestMe = appState.employees.find(e =>
+              e.id === appState.currentUser.id ||
+              String(e.name || "").trim().toLowerCase() === String(appState.currentUser.name || "").trim().toLowerCase()
+            );
+            if (latestMe) {
+              appState.currentUser = {
+                id: latestMe.id,
+                name: latestMe.name,
+                employee_number: latestMe.employee_number || "-",
+                position: latestMe.position || "Guru"
+              };
+            }
+          }
+          const hasChanged = JSON.stringify({ c: appState.schoolConfig, e: appState.employees, u: appState.currentUser }) !== prevFingerprint;
+          if (hasChanged) {
+            saveState();
+            renderApp();
+          }
+          if (!silent) showToast(`Data ${schoolName} diperbarui (${appState.employees.length} pegawai).`, "success");
+        }
+      } catch (e) {
+        if (!silent) showToast("Koneksi lambat atau terputus. Menggunakan data tersimpan.", "error");
+      }
+      isLoading = false;
+      updateStatusIndicator();
+    }
+
+    async function fetchMyAttendanceRecords(silent = true) {
+      if (!appState.selectedSchool || !appState.currentUser) return;
+      const prevFingerprint = JSON.stringify(appState.myRecords);
+      try {
+        const res = await fetchWithTimeout(`${SERVER_URL}?action=get_attendance&school=${encodeURIComponent(appState.selectedSchool)}&_t=${Date.now()}`, {}, 12000);
+        const json = await res.json();
+        if (json && json.status === "success" && Array.isArray(json.records)) {
+          const meId = String(appState.currentUser.id || "").trim();
+          const meName = String(appState.currentUser.name || "").trim().toLowerCase();
+          const filtered = json.records.filter(r =>
+            (meId && String(r.employee_id || "").trim() === meId) ||
+            String(r.name || "").trim().toLowerCase() === meName
+          );
+          const nextRecords = filtered.slice(-MAX_CACHED_RECORDS).reverse();
+          const hasChanged = JSON.stringify(nextRecords) !== prevFingerprint;
+          if (hasChanged) {
+            appState.myRecords = nextRecords;
+            saveState();
+            renderApp();
+          }
+          if (!silent) showToast("Riwayat presensi berhasil dimuat ulang.", "success");
+        }
+      } catch (e) {
+        if (!silent) showToast("Gagal memuat riwayat dari server. Periksa koneksi internet.", "error");
+      }
+    }
+
+    function updateStatusIndicator() {
+      const badge = document.getElementById("sync-status-badge");
+      if (!badge) return;
+      if (isLoading) {
+        badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat data sekolah...`;
+      } else {
+        badge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Terhubung ke Server (${appState.employees.length} Pegawai)`;
+      }
+    }
+
+    // =========================================================================
+    // AKSI PENGGUNA (PILIH SEKOLAH, LOGIN, ABSEN MASUK/PULANG/IZIN - 1X SEHARI)
+    // =========================================================================
+    window.onSelectSchoolChange = async function(schoolName) {
+      appState.selectedSchool = schoolName;
+      appState.employees = [];
+      saveState();
+      await fetchSchoolDataAndEmployees(schoolName, false);
+    };
+
+    window.togglePasswordView = function() {
+      const inp = document.getElementById("pw-field");
+      const ico = document.getElementById("pw-eye");
+      if (!inp) return;
+      if (inp.type === "password") {
+        inp.type = "text";
+        if (ico) ico.className = "fa-solid fa-eye-slash text-sm";
+      } else {
+        inp.type = "password";
+        if (ico) ico.className = "fa-solid fa-eye text-sm";
+      }
+    };
+
+    window.handleGuruLogin = async function(form) {
+      const school = (form.school ? form.school.value : appState.selectedSchool).trim();
+      const userInp = String(form.username.value || "").trim();
+      const passInp = String(form.password.value || "").trim();
+
+      if (!school) {
+        showToast("Silakan pilih nama sekolah terlebih dahulu!", "error");
+        return;
+      }
+
+      const btn = form.querySelector("button[type='submit']");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memeriksa Akun...`;
+      }
+
+      if (appState.selectedSchool !== school || appState.employees.length === 0) {
+        appState.selectedSchool = school;
+        await fetchSchoolDataAndEmployees(school, true);
+      }
+
+      const cleanUserNoSpace = userInp.replace(/\s+/g, "").toLowerCase();
+      const cleanUserLower = userInp.toLowerCase();
+      const isPlaceholderNip = (v) => !v || v === "-" || v === "0";
+
+      const matched = appState.employees.find(emp => {
+        const empNip = String(emp.employee_number || "").replace(/\s+/g, "").toLowerCase();
+        const empName = String(emp.name || "").trim().toLowerCase();
+        const empPass = String(emp.password || "").trim();
+        const nipOk = !isPlaceholderNip(empNip) && !isPlaceholderNip(cleanUserNoSpace) && empNip === cleanUserNoSpace;
+        const nameOk = empName !== "" && empName === cleanUserLower;
+        const passOk = empPass !== "" && (empPass === passInp || empPass.toLowerCase() === passInp.toLowerCase());
+        return (nipOk || nameOk) && passOk;
+      });
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk & Mulai Presensi`;
+      }
+
+      if (!matched) {
+        showToast("Nama / NIP atau Password salah! Pastikan sekolah yang dipilih sudah benar.", "error");
+        return;
+      }
+
+      appState.currentUser = {
+        id: matched.id,
+        name: matched.name,
+        employee_number: matched.employee_number || "-",
+        position: matched.position || "Guru"
+      };
+      saveState();
+      showToast(`Selamat datang, ${matched.name}!`, "success");
+      renderApp();
+      fetchMyAttendanceRecords(true);
+    };
+
+    window.handleGuruLogout = function() {
+      appState.currentUser = null;
+      appState.myRecords = [];
+      saveState();
+      renderApp();
+    };
+
+    window.submitPresensi = async function(actionType, customStatus = null) {
+      if (isSubmitting || !appState.currentUser) return;
+
+      const todayStr = getTodayDateStr();
+      const nowTime = getNowTimeStr();
+      const existingToday = appState.myRecords.find(r => r.date === todayStr);
+      const lock = getDailyLockState(existingToday);
+
+      if (actionType === "in") {
+        if (lock.isLeaveStatus) {
+          showToast(`Anda sudah tercatat "${existingToday.status}" hari ini. Presensi tidak dapat diubah.`, "error");
+          return;
+        }
+        if (lock.hasCheckedIn) {
+          showToast(`Anda sudah Absen Masuk hari ini pukul ${existingToday.check_in} WITA (maksimal 1x sehari).`, "info");
+          return;
+        }
+      } else if (actionType === "out") {
+        if (lock.isLeaveStatus) {
+          showToast(`Anda sudah tercatat "${existingToday.status}" hari ini. Tidak perlu Absen Pulang.`, "error");
+          return;
+        }
+        if (!lock.hasCheckedIn) {
+          showToast("Anda harus melakukan Absen Masuk terlebih dahulu sebelum Absen Pulang!", "error");
+          return;
+        }
+        if (lock.hasCheckedOut) {
+          showToast(`Anda sudah Absen Pulang hari ini pukul ${existingToday.check_out} WITA (maksimal 1x sehari).`, "info");
+          return;
+        }
+        const check = canCheckOutNow();
+        if (!check.allowed) {
+          showToast(`Belum waktunya pulang! Absen Pulang dibuka pukul ${check.exitLimit} WITA.`, "error");
+          return;
+        }
+      } else if (actionType === "status" && customStatus) {
+        if (lock.hasAnyRecordToday) {
+          showToast(`Presensi hari ini sudah tercatat (${existingToday.status}). Data hari ini terkunci dan tidak dapat diubah.`, "error");
+          return;
+        }
+      }
+
+      let finalStatus = "Hadir";
+      let jamMasuk = existingToday ? (existingToday.check_in || "-") : "-";
+      let jamPulang = existingToday ? (existingToday.check_out || "-") : "-";
+
+      if (actionType === "in") {
+        const entryLimit = appState.schoolConfig.entryTimeLimit || "07:15:00";
+        finalStatus = nowTime <= entryLimit ? "Hadir" : "Terlambat";
+        jamMasuk = nowTime;
+      } else if (actionType === "out") {
+        finalStatus = existingToday ? existingToday.status : "Hadir";
+        jamPulang = nowTime;
+      } else if (actionType === "status" && customStatus) {
+        finalStatus = customStatus;
+        jamMasuk = "-";
+        jamPulang = "-";
+      }
+
+      isSubmitting = true;
+      currentGpsStatusText = (appState.schoolConfig.useGpsLocation && (actionType === "in" || actionType === "out"))
+        ? "Memeriksa titik koordinat GPS..."
+        : "";
+      renderApp();
+
+      let verifiedLocation = "";
+      if (actionType === "in" || actionType === "out") {
+        const gpsCheck = await verifySchoolLocationIfRequired();
+        if (!gpsCheck.ok) {
+          isSubmitting = false;
+          currentGpsStatusText = "";
+          renderApp();
+          showToast(gpsCheck.message, "error");
+          return;
+        }
+        verifiedLocation = gpsCheck.coordsText || "";
+      }
+
+      const payload = {
+        action: "record_attendance",
+        kecamatan: appState.schoolConfig.district || "KECAMATAN TERARA",
+        gugus: appState.schoolConfig.cluster || "GUGUS 05 TERARA",
+        sekolah: appState.selectedSchool,
+        employee_id: appState.currentUser.id,
+        nip: appState.currentUser.employee_number || "-",
+        tanggal: todayStr,
+        nama: appState.currentUser.name,
+        jabatan: appState.currentUser.position || "Guru",
+        status: finalStatus,
+        jam_masuk: jamMasuk,
+        jam_pulang: jamPulang,
+        koordinat: verifiedLocation,
+        lock_daily: true
+      };
+
+      try {
+        const res = await fetchWithTimeout(SERVER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        }, 12000);
+        const json = await res.json();
+
+        if (json && json.result === "success") {
+          const newRec = {
+            date: todayStr,
+            status: finalStatus,
+            check_in: jamMasuk,
+            check_out: jamPulang
+          };
+          const idx = appState.myRecords.findIndex(r => r.date === todayStr);
+          if (idx >= 0) appState.myRecords[idx] = newRec;
+          else appState.myRecords.unshift(newRec);
+          saveState();
+
+          const msgLabel = actionType === "in"
+            ? `Absen Masuk berhasil (${jamMasuk} WITA) - ${finalStatus}`
+            : actionType === "out"
+            ? `Absen Pulang berhasil (${jamPulang} WITA) - Presensi hari ini selesai`
+            : `Keterangan "${finalStatus}" terkunci untuk hari ini!`;
+          showToast(msgLabel, "success");
+        } else if (json && json.result === "locked") {
+          showToast(json.message || "Data presensi hari ini sudah tercatat dan terkunci.", "info");
+          await fetchMyAttendanceRecords(true);
+        } else {
+          showToast("Gagal mencatat presensi ke server. Silakan coba lagi.", "error");
+        }
+      } catch (e) {
+        showToast("Koneksi lambat/terputus! Pastikan internet HP aktif lalu coba lagi.", "error");
+      }
+
+      isSubmitting = false;
+      currentGpsStatusText = "";
+      renderApp();
+    };
+
+    // =========================================================================
+    // RENDER TAMPILAN MOBILE (OPTIMAL ANDROID & iOS)
+    // =========================================================================
+    function renderApp() {
+      const root = document.getElementById("app-root");
+      if (!root) return;
+
+      // 1. TAMPILAN LOGIN GURU & PEGAWAI
+      if (!appState.currentUser) {
+        const schoolOptions = appState.schoolsList.length > 0
+          ? appState.schoolsList.map(s => `<option value="${escapeHTML(s)}" ${s === appState.selectedSchool ? "selected" : ""}>${escapeHTML(s)}</option>`).join("")
+          : (appState.selectedSchool ? `<option value="${escapeHTML(appState.selectedSchool)}" selected>${escapeHTML(appState.selectedSchool)}</option>` : `<option value="">Memuat daftar sekolah...</option>`);
+
+        const standalone = isStandaloneMode();
+        const ios = isIosDevice();
+        const iosInApp = isIosNonSafariBrowser();
+
+        root.innerHTML = `
+          <div class="space-y-3 animate-fade-up">
+            ${iosInApp ? `
+              <div class="bg-amber-50 border-2 border-amber-400 rounded-3xl p-4 shadow-md text-amber-950 space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                  <i class="fa-solid fa-compass text-amber-600 text-xl mt-0.5 shrink-0"></i>
+                  <div class="text-xs leading-snug">
+                    <p class="font-black text-amber-900">1 Langkah Lagi untuk Pengguna iPhone:</p>
+                    <p class="mt-1 text-amber-800">Ketuk <strong>ikon Kompas (Safari)</strong> di <strong>pojok kanan bawah</strong> layar WhatsApp Anda agar terbuka di Safari, lalu pasang ke Layar Utama.</p>
+                  </div>
+                </div>
+                <button type="button" onclick="window.copyCurrentAppLink()" class="w-full py-2 bg-amber-600/15 hover:bg-amber-600/25 text-amber-900 font-bold rounded-xl text-[11px] flex items-center justify-center gap-1.5 transition">
+                  <i class="fa-solid fa-copy"></i>
+                  <span>Atau Salin Link (Jika Ikon Kompas Tidak Muncul)</span>
+                </button>
+              </div>
+            ` : ""}
+
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl border border-white p-6 sm:p-7">
+              <div class="text-center mb-5">
+                <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
+                  <i class="fa-solid fa-fingerprint"></i>
+                </div>
+                <span class="inline-block px-3 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-1.5">
+                  Aplikasi Presensi Mobile • iOS &amp; Android
+                </span>
+                <h1 class="text-xl font-black text-slate-800">Absensi Guru &amp; Pegawai</h1>
+                <p class="text-xs text-slate-500 mt-1">Pilih sekolah Anda dan masuk menggunakan Nama Lengkap / NIP</p>
+              </div>
+
+              <form onsubmit="event.preventDefault(); window.handleGuruLogin(this);" class="space-y-4">
+                <div>
+                  <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Unit Sekolah</label>
+                  <select name="school" onchange="window.onSelectSchoolChange(this.value)" required
+                    class="w-full p-3 bg-blue-50/70 border border-blue-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-blue-500">
+                    ${schoolOptions}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Nama Lengkap / NIP</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                      <i class="fa-solid fa-user text-xs"></i>
+                    </span>
+                    <input type="text" name="username" required autocomplete="username" autocapitalize="words" placeholder="Ketik Nama Lengkap atau NIP"
+                      class="w-full pl-9 pr-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-blue-500" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1">Password</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                      <i class="fa-solid fa-lock text-xs"></i>
+                    </span>
+                    <input id="pw-field" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan Password"
+                      class="w-full pl-9 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-blue-500" />
+                    <button type="button" onclick="window.togglePasswordView()" aria-label="Tampilkan Password" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-blue-600">
+                      <i id="pw-eye" class="fa-solid fa-eye text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold rounded-xl shadow-md text-sm flex items-center justify-center transition">
+                  <i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk &amp; Mulai Presensi
+                </button>
+              </form>
+
+              ${!standalone && !iosInApp ? `
+                <div class="mt-4">
+                  <button type="button" onclick="window.installAppToDevice()" class="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm">
+                    <i class="${ios ? "fa-brands fa-apple text-sm" : "fa-solid fa-mobile-screen-button"}"></i>
+                    <span>${ios ? "Pasang di Layar Utama iPhone / iPad" : "Instal Aplikasi ke Layar Utama HP"}</span>
+                  </button>
+                </div>
+              ` : ""}
+
+              <div class="mt-4 pt-4 border-t border-slate-100 text-center space-y-2.5">
+                <div id="sync-status-badge" class="text-[11px] font-semibold text-slate-500">
+                  <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Terhubung ke Server (${appState.employees.length} Pegawai)
+                </div>
+                <div class="p-2.5 rounded-xl text-[11px] font-bold border ${appState.schoolConfig.useGpsLocation ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-slate-50 text-slate-600 border-slate-200"}">
+                  <i class="fa-solid ${appState.schoolConfig.useGpsLocation ? "fa-location-dot text-emerald-600" : "fa-circle-info text-slate-400"} mr-1"></i>
+                  ${appState.schoolConfig.useGpsLocation
+                    ? "GPS diaktifkan dan lakukan absensi di titik koordinat yang sudah ditentukan"
+                    : "GPS tidak aktif, dapat melakukan absensi"}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // 2. TAMPILAN UTAMA PRESENSI GURU & PEGAWAI
+      const todayStr = getTodayDateStr();
+      const todayRec = appState.myRecords.find(r => r.date === todayStr);
+      const checkoutInfo = canCheckOutNow();
+      lastExitAllowedState = checkoutInfo.allowed;
+      const lock = getDailyLockState(todayRec);
+
+      const canClickOut = !isSubmitting && !lock.lockOut && checkoutInfo.allowed;
+      let outButtonLabel = "ABSEN PULANG";
+      let outButtonSub = `Buka ${checkoutInfo.exitLimit}`;
+      let outButtonIcon = "fa-lock";
+      let outButtonClass = "bg-slate-200 text-slate-400 cursor-not-allowed";
+
+      if (lock.hasCheckedOut) {
+        outButtonLabel = "SUDAH PULANG";
+        outButtonSub = `Pukul ${todayRec.check_out}`;
+        outButtonIcon = "fa-circle-check";
+        outButtonClass = "bg-blue-100 text-blue-700 cursor-default";
+      } else if (lock.isLeaveStatus) {
+        outButtonLabel = "TERKUNCI";
+        outButtonSub = todayRec.status;
+        outButtonIcon = "fa-lock";
+        outButtonClass = "bg-slate-200 text-slate-400 cursor-not-allowed";
+      } else if (!lock.hasCheckedIn) {
+        outButtonLabel = "ABSEN PULANG";
+        outButtonSub = "Absen Masuk Dulu";
+        outButtonIcon = "fa-lock";
+        outButtonClass = "bg-slate-200 text-slate-400 cursor-not-allowed";
+      } else if (checkoutInfo.allowed) {
+        outButtonLabel = "ABSEN PULANG";
+        outButtonSub = "Siap Pulang";
+        outButtonIcon = "fa-right-from-bracket";
+        outButtonClass = "bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-md";
+      }
+
+      root.innerHTML = `
+        <div class="space-y-4 animate-fade-up my-auto">
+          <!-- Header Profil Guru -->
+          <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white rounded-3xl p-5 shadow-lg">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="inline-block px-2.5 py-0.5 bg-white/15 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1">
+                  ${escapeHTML(appState.selectedSchool)}
+                </span>
+                <h2 class="text-lg font-black leading-tight">${escapeHTML(appState.currentUser.name)}</h2>
+                <p class="text-xs text-blue-200 mt-0.5">${escapeHTML(appState.currentUser.position)} • NIP: ${escapeHTML(appState.currentUser.employee_number || "-")}</p>
+              </div>
+              <button onclick="window.handleGuruLogout()" title="Keluar Akun" class="px-2.5 py-1.5 bg-white/15 hover:bg-white/25 rounded-xl text-[11px] font-bold text-white flex items-center gap-1.5 shrink-0 transition">
+                <i class="fa-solid fa-power-off"></i>
+                <span>Keluar</span>
+              </button>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-white/15 flex items-center justify-between gap-2">
+              <div>
+                <div class="text-[11px] text-blue-200">${escapeHTML(formatDateIndo(todayStr))}</div>
+                <div class="text-[10px] text-blue-200/80">Batas Masuk: <strong>${escapeHTML(appState.schoolConfig.entryTimeLimit || "07:15:00")} WITA</strong></div>
+                <div class="text-[10px] mt-1 leading-snug ${appState.schoolConfig.useGpsLocation ? "text-emerald-300 font-bold" : "text-blue-100/90"}">
+                  <i class="fa-solid ${appState.schoolConfig.useGpsLocation ? "fa-location-dot" : "fa-circle-info"} mr-1"></i>
+                  ${appState.schoolConfig.useGpsLocation
+                    ? "GPS diaktifkan dan lakukan absensi di titik koordinat yang sudah ditentukan"
+                    : "GPS tidak aktif, dapat melakukan absensi"}
+                </div>
+              </div>
+              <div id="live-clock" class="text-xl font-black font-mono tracking-tight shrink-0">--:--:--</div>
+            </div>
+          </div>
+
+          <!-- Kartu Status & Tombol Absen -->
+          <div class="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-md border border-white space-y-4">
+            <div class="p-2.5 rounded-xl text-center text-[11px] font-bold border ${appState.schoolConfig.useGpsLocation ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-slate-50 text-slate-600 border-slate-200"}">
+              <i class="fa-solid ${appState.schoolConfig.useGpsLocation ? "fa-location-dot text-emerald-600" : "fa-circle-info text-slate-400"} mr-1"></i>
+              ${appState.schoolConfig.useGpsLocation
+                ? "GPS diaktifkan dan lakukan absensi di titik koordinat yang sudah ditentukan"
+                : "GPS tidak aktif, dapat melakukan absensi"}
+            </div>
+            ${currentGpsStatusText ? `
+              <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-bold text-blue-700">
+                <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> ${escapeHTML(currentGpsStatusText)}
+              </div>
+            ` : ""}
+            <div class="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+              <div>
+                <span class="block text-[10px] font-bold text-slate-400 uppercase">Masuk</span>
+                <span class="font-mono text-xs font-black text-emerald-700">${todayRec && todayRec.check_in !== "-" ? escapeHTML(todayRec.check_in) : "--:--"}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] font-bold text-slate-400 uppercase">Pulang</span>
+                <span class="font-mono text-xs font-black text-blue-700">${todayRec && todayRec.check_out !== "-" ? escapeHTML(todayRec.check_out) : "--:--"}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] font-bold text-slate-400 uppercase">Status</span>
+                <span class="text-[11px] font-extrabold uppercase ${todayRec ? "text-indigo-700" : "text-slate-400"}">${todayRec ? escapeHTML(todayRec.status) : "Belum Absen"}</span>
+              </div>
+            </div>
+
+            <!-- Tombol Utama Masuk & Pulang (1x Sehari) -->
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="window.submitPresensi('in')" ${isSubmitting || lock.lockIn ? "disabled" : ""}
+                class="py-4 px-3 ${lock.hasCheckedIn ? "bg-emerald-100 text-emerald-700 cursor-default" : lock.isLeaveStatus ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-md"} font-black rounded-2xl transition flex flex-col items-center justify-center text-xs">
+                <i class="fa-solid ${lock.hasCheckedIn ? "fa-circle-check" : lock.isLeaveStatus ? "fa-lock" : "fa-right-to-bracket"} text-xl mb-1"></i>
+                <span>${lock.hasCheckedIn ? "SUDAH MASUK" : lock.isLeaveStatus ? "TERKUNCI" : "ABSEN MASUK"}</span>
+                <span class="text-[9px] font-semibold mt-0.5">${lock.hasCheckedIn ? `Pukul ${todayRec.check_in}` : lock.isLeaveStatus ? todayRec.status : "1x Sehari"}</span>
+              </button>
+
+              <button onclick="window.submitPresensi('out')" ${!canClickOut ? "disabled" : ""}
+                class="py-4 px-3 ${outButtonClass} font-black rounded-2xl transition flex flex-col items-center justify-center text-xs">
+                <i class="fa-solid ${outButtonIcon} text-xl mb-1"></i>
+                <span>${outButtonLabel}</span>
+                <span class="text-[9px] font-semibold mt-0.5">${outButtonSub}</span>
+              </button>
+            </div>
+
+            <!-- Keterangan Tidak Hadir (Terkunci jika sudah presensi hari ini) -->
+            <div class="pt-3 border-t border-slate-100 text-center">
+              <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">
+                ${lock.lockLeave ? "Presensi Hari Ini Sudah Tercatat & Terkunci" : "Keterangan Tidak Hadir Hari Ini (1x Pilih)"}
+              </p>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="window.submitPresensi('status', 'Dinas Luar')" ${isSubmitting || lock.lockLeave ? "disabled" : ""}
+                  class="py-2.5 ${lock.lockLeave ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" : "bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-200"} border rounded-xl text-xs font-bold transition">
+                  Dinas Luar
+                </button>
+                <button onclick="window.submitPresensi('status', 'Izin')" ${isSubmitting || lock.lockLeave ? "disabled" : ""}
+                  class="py-2.5 ${lock.lockLeave ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"} border rounded-xl text-xs font-bold transition">
+                  Izin
+                </button>
+                <button onclick="window.submitPresensi('status', 'Sakit')" ${isSubmitting || lock.lockLeave ? "disabled" : ""}
+                  class="py-2.5 ${lock.lockLeave ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" : "bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200"} border rounded-xl text-xs font-bold transition">
+                  Sakit
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Riwayat Singkat -->
+          <div class="bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-md border border-white">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <h3 class="text-xs font-black text-slate-800 uppercase">Riwayat Presensi Terakhir</h3>
+              <button onclick="fetchMyAttendanceRecords(false)" class="text-[11px] font-bold text-blue-600 hover:underline">
+                <i class="fa-solid fa-rotate mr-1"></i>Refresh
+              </button>
+            </div>
+            <div class="space-y-2 max-h-48 overflow-y-auto pr-1" style="-webkit-overflow-scrolling: touch;">
+              ${appState.myRecords.length === 0
+                ? `<p class="text-xs text-slate-400 text-center py-4">Belum ada catatan presensi.</p>`
+                : appState.myRecords.slice(0, 10).map(r => `
+                  <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                    <div>
+                      <div class="font-bold text-slate-800">${escapeHTML(formatDateIndo(r.date))}</div>
+                      <div class="text-[10px] font-mono text-slate-500">Masuk: ${escapeHTML(r.check_in || "-")} • Pulang: ${escapeHTML(r.check_out || "-")}</div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                      r.status === "Hadir" ? "bg-emerald-100 text-emerald-700" :
+                      r.status === "Terlambat" ? "bg-amber-100 text-amber-700" :
+                      "bg-purple-100 text-purple-700"
+                    }">${escapeHTML(r.status)}</span>
+                  </div>
+                `).join("")
+              }
+            </div>
+          </div>
+        </div>
+      `;
+
+      const clockEl = document.getElementById("live-clock");
+      if (clockEl) clockEl.textContent = getNowTimeStr();
+    }
+
+    // =========================================================================
+    // INISIALISASI SAAT APLIKASI DIBUKA
+    // =========================================================================
+    window.addEventListener("DOMContentLoaded", async function() {
+      setupStandaloneAppMeta();
+      loadSavedState();
+      renderApp();
+
+      const prevSchools = JSON.stringify(appState.schoolsList);
+      await fetchSchoolsList();
+      if (JSON.stringify(appState.schoolsList) !== prevSchools && !appState.currentUser) {
+        renderApp();
+      }
+      if (appState.selectedSchool) {
+        await fetchSchoolDataAndEmployees(appState.selectedSchool, true);
+        if (appState.currentUser) {
+          await fetchMyAttendanceRecords(true);
+        }
+      }
+
+      let tickCount = 0;
+      setInterval(() => {
+        const clockEl = document.getElementById("live-clock");
+        if (clockEl) clockEl.textContent = getNowTimeStr();
+
+        tickCount++;
+        if (tickCount % 15 === 0 && appState.currentUser) {
+          const nowAllowed = canCheckOutNow().allowed;
+          if (lastExitAllowedState !== null && nowAllowed !== lastExitAllowedState) {
+            renderApp();
+          }
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
